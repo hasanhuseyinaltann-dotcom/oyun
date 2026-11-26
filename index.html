@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hasan & Şevval">
+<meta name="theme-color" content="#e06c9a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>💕</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(160deg,#ffd6e5,#ffeef4 45%,#e8e4ff);color:#4a2c3a}
+  #wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px}
+  .card{width:100%;max-width:340px;background:rgba(255,255,255,.85);border-radius:22px;padding:28px 22px;box-shadow:0 10px 40px rgba(180,80,120,.18);text-align:center}
+  h1{margin:0 0 4px;font-size:26px}
+  p.sub{margin:0 0 20px;font-size:14px;opacity:.7}
+  input{width:100%;font-size:16px;padding:13px 14px;margin:6px 0;border:1.5px solid #f2c3d4;border-radius:12px;background:#fff;color:#4a2c3a;outline:none}
+  input:focus{border-color:#e06c9a}
+  button{width:100%;margin-top:12px;font-size:17px;font-weight:600;padding:13px;border:0;border-radius:12px;background:#e06c9a;color:#fff;cursor:pointer}
+  button:disabled{opacity:.6}
+  #msg{min-height:20px;margin-top:12px;font-size:14px;color:#b0305f}
+  #st{font-size:15px}
+  .bar{height:6px;background:#f6d3e0;border-radius:3px;overflow:hidden;margin-top:14px}
+  .bar i{display:block;height:100%;width:0;background:#e06c9a;transition:width .2s}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div class="card">
+    <h1>Hasan &amp; Şevval</h1>
+    <p class="sub">💕 sadece ikimiz için 💕</p>
+    <form id="f" class="hide" autocomplete="on">
+      <input id="em" type="email" placeholder="E-posta" autocomplete="username" required>
+      <input id="pw" type="password" placeholder="Şifre" autocomplete="current-password" required>
+      <button id="btn" type="submit">Giriş</button>
+    </form>
+    <div id="busy"><div id="st">Bekle biraz…</div><div class="bar"><i id="pr"></i></div></div>
+    <div id="msg"></div>
+  </div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+window.FB_CONFIG={apiKey:"AIzaSyBDD9zBzTfuaOgxPhJPnWHf6UPNhR72JXA",authDomain:"oyunum-95b14.firebaseapp.com",databaseURL:"https://oyunum-95b14-default-rtdb.europe-west1.firebasedatabase.app",projectId:"oyunum-95b14",storageBucket:"oyunum-95b14.firebasestorage.app",messagingSenderId:"152723974580",appId:"1:152723974580:web:48dfddb11fa24f9d5a6ae1"};
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  var form=$('f'), busy=$('busy'), msg=$('msg'), st=$('st'), pr=$('pr');
+  function showLogin(t){ form.classList.remove('hide'); busy.classList.add('hide'); $('btn').disabled=false; msg.textContent=t||''; }
+  function showBusy(t,p){ form.classList.add('hide'); busy.classList.remove('hide'); st.textContent=t; pr.style.width=(p||0)+'%'; msg.textContent=''; }
+
+  firebase.initializeApp(window.FB_CONFIG);
+  var auth=firebase.auth(), db=firebase.database();
+  var booted=false;
+
+  var ERR={'auth/invalid-credential':'E-posta ya da şifre yanlış','auth/wrong-password':'Şifre yanlış','auth/user-not-found':'Böyle bir hesap yok','auth/invalid-email':'E-posta geçersiz','auth/too-many-requests':'Çok fazla deneme oldu, biraz bekle','auth/network-request-failed':'İnternet bağlantısı yok gibi'};
+
+  form.addEventListener('submit',function(e){
+    e.preventDefault(); $('btn').disabled=true; msg.textContent='';
+    auth.signInWithEmailAndPassword($('em').value.trim(),$('pw').value).catch(function(err){
+      showLogin(ERR[err.code]||('Giriş olmadı: '+(err.code||err.message)));
+    });
+  });
+
+
+  // Oyunu aynı sayfaya yerleştir (document.write kullanmadan; Safari'de kanca kaybolmasın)
+  async function runGame(html){
+    var doc=new DOMParser().parseFromString(html,'text/html');
+    var list=[].slice.call(doc.querySelectorAll('script'));
+    list.forEach(function(sc,i){ var c=doc.createComment('gs'+i); sc.parentNode.replaceChild(c,sc); });
+    document.title=doc.title||document.title;
+    [].slice.call(doc.documentElement.attributes).forEach(function(a){ document.documentElement.setAttribute(a.name,a.value); });
+    const keep=[].slice.call(document.head.querySelectorAll('link[rel=manifest],link[rel=apple-touch-icon],link[rel=icon],meta[name^=apple-],meta[name=mobile-web-app-capable],meta[name=theme-color],meta[name=robots]'));
+    document.head.innerHTML=''; document.body.innerHTML=''; keep.forEach(n=>document.head.appendChild(n));
+    [].slice.call(doc.body.attributes).forEach(function(a){ document.body.setAttribute(a.name,a.value); });
+    [].slice.call(doc.head.childNodes).forEach(function(n){ document.head.appendChild(document.importNode(n,true)); });
+    [].slice.call(doc.body.childNodes).forEach(function(n){ document.body.appendChild(document.importNode(n,true)); });
+    errBox();
+    function findC(root,txt){ var w=document.createTreeWalker(root,NodeFilter.SHOW_COMMENT); var n; while((n=w.nextNode())) if(n.data===txt) return n; return null; }
+    for(var i=0;i<list.length;i++){
+      var ph=findC(document.documentElement,'gs'+i); var old=list[i];
+      var s=document.createElement('script');
+      [].slice.call(old.attributes).forEach(function(a){ if(a.name!=='src') s.setAttribute(a.name,a.value); });
+      if(old.getAttribute('src')){
+        var url=old.getAttribute('src');
+        await new Promise(function(res){ s.onload=res; s.onerror=function(){ showErr('Yüklenemedi: '+url); res(); }; desc0.set.call(s,url); ph.parentNode.replaceChild(s,ph); });
+      } else { s.text=old.text; ph.parentNode.replaceChild(s,ph); }
+    }
+  }
+  var desc0=Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype,'src');
+  var errs=0;
+  function errBox(){ if(document.getElementById('__err')) return; var d=document.createElement('div'); d.id='__err'; d.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;font:12px/1.35 monospace;color:#fff;background:rgba(160,0,40,.88);padding:6px 8px;border-radius:8px;white-space:pre-wrap;display:none;pointer-events:auto;max-height:30vh;overflow:auto'; d.onclick=function(){ d.style.display='none'; }; document.body.appendChild(d); }
+  function showErr(t){ if(++errs>6) return; errBox(); var d=document.getElementById('__err'); d.style.display='block'; d.textContent+=(d.textContent?'\n':'')+'⚠ '+t; }
+  window.addEventListener('error',function(e){ showErr((e.message||'hata')+(e.filename?' @'+String(e.filename).split('/').pop()+':'+e.lineno:'')); });
+  window.addEventListener('unhandledrejection',function(e){ showErr('(p) '+(e.reason&&e.reason.message||e.reason)); });
+
+  function b64d(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; var r=atob(s),u=new Uint8Array(r.length); for(var i=0;i<r.length;i++) u[i]=r.charCodeAt(i); return u; }
+
+  async function boot(){
+    showBusy('Kilit açılıyor…',5);
+    var snap; try{ snap=await db.ref('keys/asset').get(); }
+    catch(e){ await auth.signOut(); showLogin('Bu hesabın girme izni yok'); return; }
+    var kb=snap.val(); if(!kb){ showLogin('Anahtar henüz kurulmamış'); return; }
+    var key=await crypto.subtle.importKey('raw',b64d(kb),'AES-GCM',false,['decrypt']);
+    // Parça parça indir + çöz (tüm dosyayı bir anda bellekte tutmaz); aynı anda tek dosya
+    var CH=1<<20, CS=CH+16, q=Promise.resolve();
+    function ivFor(b,i){ var v=new Uint8Array(12); v.set(b.subarray(0,8)); var c=(((b[8]<<24)|(b[9]<<16)|(b[10]<<8)|b[11])+i)>>>0; v[8]=c>>>24; v[9]=(c>>>16)&255; v[10]=(c>>>8)&255; v[11]=c&255; return v; }
+    function aad(i,last){ return new Uint8Array([i>>>24,(i>>>16)&255,(i>>>8)&255,i&255,last?1:0]); }
+    async function decRaw(path,type){
+      var r=await fetch(path); if(!r.ok) throw new Error(path+' '+r.status);
+      var rd=r.body.getReader(), pend=[], plen=0, base=null, idx=0, parts=[];
+      function take(n){ var out=new Uint8Array(n), o=0; while(o<n){ var h=pend[0], k=Math.min(h.length,n-o); out.set(h.subarray(0,k),o); o+=k; if(k===h.length) pend.shift(); else pend[0]=h.subarray(k); } plen-=n; return out; }
+      async function one(len,last){ var c=take(len); var p=await crypto.subtle.decrypt({name:'AES-GCM',iv:ivFor(base,idx),additionalData:aad(idx,last)},key,c); parts.push(new Blob([p])); idx++; }
+      for(;;){
+        var x=await rd.read();
+        if(x.value){ pend.push(x.value); plen+=x.value.length; }
+        if(!base && plen>=12) base=take(12);
+        if(base) while(plen>CS) await one(CS,false);
+        if(x.done) break;
+      }
+      if(!base) throw new Error(path+' bozuk');
+      await one(plen,true);
+      return new Blob(parts,{type:type||'application/octet-stream'});
+    }
+    function dec(path,type){ var p=q.then(function(){ return decRaw(path,type); }); q=p.catch(function(){}); return p; }
+    var man;
+    try{ man=JSON.parse(await (await dec('m.bin')).text()); }
+    catch(e){ showLogin('Dosyalar açılamadı (anahtar eşleşmiyor olabilir)'); return; }
+    showBusy('Oyun hazırlanıyor…',40);
+
+    // Oyunun yüklediği model dosyalarını (script.src='x.js') şifreli kopyadan çöz
+    var desc=Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype,'src');
+    Object.defineProperty(HTMLScriptElement.prototype,'src',{configurable:true,enumerable:true,
+      get:function(){ return this.__lsrc||desc.get.call(this); },
+      set:function(v){
+        var f=man.files[v]; if(!f) return desc.set.call(this,v);
+        var el=this; el.__lsrc=v;
+        dec('d/'+f,'text/javascript').then(function(blob){
+          var url=URL.createObjectURL(blob);
+          var s=document.createElement('script');
+          s.onload=function(){ URL.revokeObjectURL(url); el.dispatchEvent(new Event('load')); };
+          s.onerror=function(){ el.dispatchEvent(new Event('error')); };
+          desc.set.call(s,url); document.head.appendChild(s);
+        }).catch(function(){ el.dispatchEvent(new Event('error')); });
+      }});
+
+    var html=await (await dec('d/'+man.index)).text();
+    showBusy('Giriyoruz…',90);
+    window.__GAME_USER={uid:auth.currentUser.uid,email:auth.currentUser.email};
+    await runGame(html);
+    return true;
+  }
+
+  auth.onAuthStateChanged(function(u){
+    if(booted) return;
+    if(!u){ showLogin(); return; }
+    booted=true;
+    boot().then(function(ok){ if(!ok) booted=false; },function(e){ booted=false; showLogin('Bir şey ters gitti: '+(e&&e.message||e)); });
+  });
+})();
+</script>
+</body>
+</html>
