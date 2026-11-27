@@ -114,7 +114,7 @@ window.FB_CONFIG={apiKey:"AIzaSyBDD9zBzTfuaOgxPhJPnWHf6UPNhR72JXA",authDomain:"o
     function ivFor(b,i){ var v=new Uint8Array(12); v.set(b.subarray(0,8)); var c=(((b[8]<<24)|(b[9]<<16)|(b[10]<<8)|b[11])+i)>>>0; v[8]=c>>>24; v[9]=(c>>>16)&255; v[10]=(c>>>8)&255; v[11]=c&255; return v; }
     function aad(i,last){ return new Uint8Array([i>>>24,(i>>>16)&255,(i>>>8)&255,i&255,last?1:0]); }
     async function decRaw(path,type){
-      var r=await fetch(path); if(!r.ok) throw new Error(path+' '+r.status);
+      var r=await fetch(path, path==='m.bin'?{cache:'no-store'}:undefined); if(!r.ok) throw new Error(path+' '+r.status);
       var rd=r.body.getReader(), pend=[], plen=0, base=null, idx=0, parts=[];
       function take(n){ var out=new Uint8Array(n), o=0; while(o<n){ var h=pend[0], k=Math.min(h.length,n-o); out.set(h.subarray(0,k),o); o+=k; if(k===h.length) pend.shift(); else pend[0]=h.subarray(k); } plen-=n; return out; }
       async function one(len,last){ var c=take(len); var p=await crypto.subtle.decrypt({name:'AES-GCM',iv:ivFor(base,idx),additionalData:aad(idx,last)},key,c); parts.push(new Blob([p])); idx++; }
